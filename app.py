@@ -1,8 +1,8 @@
 import dash
 import dash_auth
-import dash_core_components as dcc
-import dash_html_components as html
-import plotly
+from dash import html, dcc
+from dash.dependencies import Input, Output, State
+import plotly.graph_objects as go
 
 
 # Keep this out of source code repository - save in a file or a database
@@ -28,6 +28,8 @@ app.layout = html.Div([
         options=[{'label': i, 'value': i} for i in [1, 2, 3, 4, 5]],
         value=1
     ),
+
+    html.Div(id='graph-title'),
     dcc.Graph(id='graph'),
     html.A('Code on Github', href='https://github.com/austinlasseter/dash-auth-example'),
     html.Br(),
@@ -35,24 +37,36 @@ app.layout = html.Div([
 ], className='container')
 
 @app.callback(
-    dash.dependencies.Output('graph', 'figure'),
-    [dash.dependencies.Input('dropdown', 'value')])
+    Output('graph-title', 'children'),
+    Output('graph', 'figure'),
+    Input('dropdown', 'value'),
+    )
 def update_graph(dropdown_value):
+
     x_values = [-3,-2,-1,0,1,2,3]
     y_values = [x**dropdown_value for x in x_values]
+    colors=['black','red','green','blue','orange','purple']
+    graph_title='Graph of {}'.format(str(dropdown_value))
 
-    return {
-        'layout': {
-            'title': 'Graph of {}'.format(str(dropdown_value)),
-            'margin': {
-                'l': 20,
-                'b': 20,
-                'r': 10,
-                't': 60
-            }
-        },
-        'data': [{'x': x_values, 'y': y_values}]
-    }
+
+    trace0 = go.Scatter(
+        x = x_values,
+        y = y_values,
+        mode = 'lines',
+        marker = {'color': colors[dropdown_value]},
+    )
+
+    # assign traces to data
+    data = [trace0]
+    layout = go.Layout(
+        title = graph_title
+    )
+
+    # Generate the figure dictionary
+    fig = go.Figure(data=data,layout=layout)
+
+    return graph_title, fig
+
 
 ############ Deploy
 if __name__ == '__main__':
